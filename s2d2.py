@@ -20,6 +20,9 @@ from lora import load_safetensors_lora
 from realesrgan import RealESRGANer
 from realesrgan.archs.srvgg_arch import SRVGGNetCompact
 
+from basicsr.archs.rrdbnet_arch import RRDBNet
+from basicsr.utils.download_util import load_file_from_url
+
 import cv2
 import glob
 
