@@ -17,6 +17,13 @@ import numpy as np
 
 from lora import load_safetensors_lora
 
+from realesrgan import RealESRGANer
+from realesrgan.archs.srvgg_arch import SRVGGNetCompact
+
+import cv2
+import glob
+
+
 SCHEDULERS = {
     "unipc": diffusers.schedulers.UniPCMultistepScheduler,
     "euler_a": diffusers.schedulers.EulerAncestralDiscreteScheduler,
@@ -251,7 +258,35 @@ class StableDiffusionImageGenerator:
                         )
                     image = self.decode_latents_to_PIL_image(image, decode_factor)
                 elif upscale_target == "esrgan":
-                    from RealESRGAN import RealESRGAN
+                    model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=6, num_grow_ch=32, scale=4)
+                    netscale = 4
+                    model_path = '/content/models/upscale_models/RealESRGAN_x4plus_anime_6B.pth'
+                    dni_weight = None
+                    upsampler = RealESRGANer(
+                          scale=netscale,
+                          model_path=model_path,
+                          dni_weight=dni_weight,
+                          model=model,
+                          tile=0,
+                          tile_pad=10,
+                          pre_pad=0,
+                          half=True,
+                          gpu_id=None)
+
+                    from gfpgan import GFPGANer
+                    face_enhancer = GFPGANer(
+                          model_path='https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.3.pth',
+                          upscale=4,
+                          arch='clean',
+                          channel_multiplier=2,
+                          bg_upsampler=upsampler)
+
+                    numpy_image=np.array(image)  
+                    img=cv2.cvtColor(numpy_image, cv2.COLOR_RGB2BGR) 
+                    output, _ = upsampler.enhance(img, outscale=4)
+                    color_converted = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)
+                    image=Image.fromarray(color_converted)
+                    image = image.resize((1024,1024), Image.Resampling.LANCZOS)
                 else:
                     image = image.resize((w, h), Image.Resampling.LANCZOS)
 
