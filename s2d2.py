@@ -172,7 +172,7 @@ class StableDiffusionImageGenerator:
 
             if output_type == "latent":
                 return latents
-            elif output_type == "pil":
+            elif output_type == "pil" or output_type == "esrgan":
                 return self.decode_latents_to_PIL_image(latents, decode_factor)
             else:
                 raise NotImplementedError()
