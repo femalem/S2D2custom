@@ -250,6 +250,8 @@ class StableDiffusionImageGenerator:
                             antialias=True if antialias and interpolate_mode != "nearest" else False,
                         )
                     image = self.decode_latents_to_PIL_image(image, decode_factor)
+                elif upscale_target == "esrgan":
+                    from RealESRGAN import RealESRGAN
                 else:
                     image = image.resize((w, h), Image.Resampling.LANCZOS)
 
