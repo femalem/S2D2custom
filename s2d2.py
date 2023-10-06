@@ -15,7 +15,7 @@ import datetime
 from PIL import Image
 import numpy as np
 
-from lora import load_safetensors_lora
+from lora import load_safetensors_lora, unload_safetensors_lora
 
 from realesrgan import RealESRGANer
 from realesrgan.archs.srvgg_arch import SRVGGNetCompact
@@ -82,6 +82,9 @@ class StableDiffusionImageGenerator:
         self.pipe = load_safetensors_lora(self.pipe, safetensor_path, alpha=alpha, device=self.device)
         self.pipe_i2i = load_safetensors_lora(self.pipe_i2i, safetensor_path, alpha=alpha, device=self.device)
 
+    def unload_lora(self, safetensor_path, alpha=0.75):
+        self.pipe = unload_safetensors_lora(self.pipe, safetensor_path, alpha=alpha, device=self.device)
+        self.pipe_i2i = unload_safetensors_lora(self.pipe_i2i, safetensor_path, alpha=alpha, device=self.device)
 
     def decode_latents_to_PIL_image(self, latents, decode_factor=0.18215):
         with torch.no_grad():
