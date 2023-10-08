@@ -61,11 +61,11 @@ class StableDiffusionImageGenerator:
             dtype: torch.dtype=torch.float16,
             ):
         self.device = torch.device(device)
-        self.pipe = StableDiffusionPipeline.from_ckpt(
+        self.pipe = StableDiffusionPipeline.from_single_file(
             sd_safetensor_path,
             torch_dtype=dtype,
         ).to(device)
-        self.pipe_i2i = StableDiffusionImg2ImgPipeline.from_ckpt(
+        self.pipe_i2i = StableDiffusionImg2ImgPipeline.from_single_file(
             sd_safetensor_path,
             torch_dtype=dtype,
         ).to(device)
