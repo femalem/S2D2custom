@@ -59,12 +59,19 @@ class StableDiffusionImageGenerator:
             sd_safetensor_path: str,
             device: str="cuda",
             dtype: torch.dtype=torch.float16,
+            first_pass: str = None
             ):
         self.device = torch.device(device)
-        self.pipe = StableDiffusionPipeline.from_single_file(
-            sd_safetensor_path,
-            torch_dtype=dtype,
-        ).to(device)
+        if first_pass is None:
+          self.pipe = StableDiffusionPipeline.from_single_file(
+              sd_safetensor_path,
+              torch_dtype=dtype,
+          ).to(device)
+        else:
+          self.pipe = StableDiffusionPipeline.from_single_file(
+              first_pass,
+              torch_dtype=dtype,
+          ).to(device)
         self.pipe_i2i = StableDiffusionImg2ImgPipeline.from_single_file(
             sd_safetensor_path,
             torch_dtype=dtype,
