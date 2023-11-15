@@ -59,23 +59,38 @@ class StableDiffusionImageGenerator:
             sd_safetensor_path: str,
             device: str="cuda",
             dtype: torch.dtype=torch.float16,
-            first_pass: str = None
+            first_pass: str = None,
+            controlnet: bool = False
             ):
         self.device = torch.device(device)
+              
         if first_pass is None:
-          self.pipe = StableDiffusionPipeline.from_single_file(
+          first_pass = sd_safetensor_path
+        if controlnet:
+          url = "https://huggingface.co/kohya-ss/ControlNet-diff-modules/blob/main/diff_control_sd15_openpose_fp16.safetensors"  # can also be a local path
+          controlnet = ControlNetModel.from_single_file(url, torch_dtype=dtype)
+          controlnet = ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-canny", torch_dtype=torch.float16)
+          self.pipe = StableDiffusionControlNetPipeline.from_single_file(
+              first_pass,
+              torch_dtype=dtype,
+              controlnet = controlnet
+          ).to(device)
+          self.pipe_i2i = StableDiffusionControlNetImg2ImgPipeline.from_single_file(
               sd_safetensor_path,
               torch_dtype=dtype,
+              controlnet = controlnet
           ).to(device)
+          self.controlnet = True
         else:
           self.pipe = StableDiffusionPipeline.from_single_file(
               first_pass,
               torch_dtype=dtype,
           ).to(device)
-        self.pipe_i2i = StableDiffusionImg2ImgPipeline.from_single_file(
-            sd_safetensor_path,
-            torch_dtype=dtype,
-        ).to(device)
+          self.pipe_i2i = StableDiffusionImg2ImgPipeline.from_single_file(
+              sd_safetensor_path,
+              torch_dtype=dtype,
+          ).to(device)
+          self.controlnet = False
         self.pipe.enable_xformers_memory_efficient_attention()
         self.pipe.enable_attention_slicing()
         self.pipe_i2i.enable_xformers_memory_efficient_attention()
@@ -116,7 +131,8 @@ class StableDiffusionImageGenerator:
             output_type="pil",
             decode_factor=0.18215,
             seed=1234,
-            save_path=None
+            save_path=None,
+            control_image=None
             ):
 
         self.pipe.scheduler = SCHEDULERS[scheduler_name].from_config(self.pipe.scheduler.config)
@@ -124,17 +140,29 @@ class StableDiffusionImageGenerator:
         seed = random.randint(1, 1000000000) if seed == -1 else seed
 
         with torch.no_grad():
-            latents = self.pipe(
-                prompt=prompt, 
-                negative_prompt=negative_prompt,
-                num_inference_steps=num_inference_steps, 
-                generator=torch.manual_seed(seed),
-                guidance_scale=guidance_scale,
-                width=width,
-                height=height,
-                output_type="latent"
-            ).images # 1x4x(W/8)x(H/8)
-
+            if self.controlnet:
+              latents = self.pipe(
+                  prompt=prompt, 
+                  negative_prompt=negative_prompt,
+                  num_inference_steps=num_inference_steps, 
+                  generator=torch.manual_seed(seed),
+                  guidance_scale=guidance_scale,
+                  width=width,
+                  height=height,
+                  output_type="latent",
+                  image=control_image
+              ).images # 1x4x(W/8)x(H/8)
+            else:
+              latents = self.pipe(
+                  prompt=prompt, 
+                  negative_prompt=negative_prompt,
+                  num_inference_steps=num_inference_steps, 
+                  generator=torch.manual_seed(seed),
+                  guidance_scale=guidance_scale,
+                  width=width,
+                  height=height,
+                  output_type="latent"
+              ).images # 1x4x(W/8)x(H/8)
             if save_path is not None:
                 pil_image = self.decode_latents_to_PIL_image(latents, decode_factor)
                 os.makedirs(os.path.dirname(save_path), exist_ok=True)
@@ -159,7 +187,8 @@ class StableDiffusionImageGenerator:
             output_type="pil",
             decode_factor=0.18215,
             seed=1234,
-            save_path=None
+            save_path=None,
+            control_image=None
             ):
 
         self.pipe_i2i.scheduler = SCHEDULERS[scheduler_name].from_config(self.pipe_i2i.scheduler.config)
@@ -167,17 +196,29 @@ class StableDiffusionImageGenerator:
         seed = random.randint(1, 1000000000) if seed == -1 else seed
 
         with torch.no_grad():
-            latents = self.pipe_i2i(
-                prompt=prompt, 
-                negative_prompt=negative_prompt,
-                image=image,
-                num_inference_steps=num_inference_steps, 
-                strength=denoising_strength,
-                generator=torch.manual_seed(seed),
-                guidance_scale=guidance_scale,
-                output_type="latent"
-            ).images # 1x4x(W/8)x(H/8)
-
+            if self.controlnet:
+              latents = self.pipe_i2i(
+                  prompt=prompt, 
+                  negative_prompt=negative_prompt,
+                  image=image,
+                  num_inference_steps=num_inference_steps, 
+                  strength=denoising_strength,
+                  generator=torch.manual_seed(seed),
+                  guidance_scale=guidance_scale,
+                  output_type="latent"
+                  control_image=control_image
+              ).images # 1x4x(W/8)x(H/8)
+            else:
+              latents = self.pipe_i2i(
+                  prompt=prompt, 
+                  negative_prompt=negative_prompt,
+                  image=image,
+                  num_inference_steps=num_inference_steps, 
+                  strength=denoising_strength,
+                  generator=torch.manual_seed(seed),
+                  guidance_scale=guidance_scale,
+                  output_type="latent"
+              ).images # 1x4x(W/8)x(H/8)
             if save_path is not None:
                 pil_image = self.decode_latents_to_PIL_image(latents, decode_factor)
                 os.makedirs(os.path.dirname(save_path), exist_ok=True)
@@ -211,7 +252,8 @@ class StableDiffusionImageGenerator:
             output_type="pil",
             decode_factor=0.15,
             decode_factor_final=0.18215,
-            save_dir="output"
+            save_dir="output",
+            control_image=None
             ):
         
         with torch.no_grad():
@@ -258,6 +300,7 @@ class StableDiffusionImageGenerator:
                         decode_factor=decode_factor,
                         seed=seed,
                         save_path=os.path.join(save_dir, f"{now_str}_{i}.jpg")
+                        control_image=control_image
                     )
                     continue
 
@@ -317,6 +360,7 @@ class StableDiffusionImageGenerator:
                         decode_factor=decode_factor,
                         seed=seed,
                         save_path=os.path.join(save_dir, f"{now_str}_{i}.jpg")
+                        control_image=control_image
                     )
 
                 else: # Final enhance
@@ -331,7 +375,8 @@ class StableDiffusionImageGenerator:
                         output_type=output_type,
                         decode_factor=decode_factor_final,
                         seed=seed,
-                        save_path=os.path.join(save_dir, f"{now_str}_{i}.jpg")
+                        save_path=os.path.join(save_dir, f"{now_str}_{i}.jpg"),
+                        control_image=control_image
                     )
                     return image
     
