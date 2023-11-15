@@ -302,7 +302,7 @@ class StableDiffusionImageGenerator:
                         output_type=upscale_target,
                         decode_factor=decode_factor,
                         seed=seed,
-                        save_path=os.path.join(save_dir, f"{now_str}_{i}.jpg")
+                        save_path=os.path.join(save_dir, f"{now_str}_{i}.jpg"),
                         control_image=control_image
                     )
                     continue
@@ -362,7 +362,7 @@ class StableDiffusionImageGenerator:
                         output_type=upscale_target,
                         decode_factor=decode_factor,
                         seed=seed,
-                        save_path=os.path.join(save_dir, f"{now_str}_{i}.jpg")
+                        save_path=os.path.join(save_dir, f"{now_str}_{i}.jpg"),
                         control_image=control_image
                     )
 
