@@ -208,7 +208,7 @@ class StableDiffusionImageGenerator:
                   strength=denoising_strength,
                   generator=torch.manual_seed(seed),
                   guidance_scale=guidance_scale,
-                  output_type="latent"
+                  output_type="latent",
                   control_image=control_image
               ).images # 1x4x(W/8)x(H/8)
             else:
