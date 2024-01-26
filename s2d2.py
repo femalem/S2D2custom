@@ -28,6 +28,7 @@ from basicsr.utils.download_util import load_file_from_url
 
 import cv2
 import glob
+from diffusers.utils import get_class_from_dynamic_module
 
 
 SCHEDULERS = {
@@ -85,11 +86,12 @@ class StableDiffusionImageGenerator:
           ).to(device)
           self.controlnet = True
         else:
-          self.pipe = StableDiffusionPipeline.from_single_file(
+          LPWStableDiffusionPipeline = get_class_from_dynamic_module("lpw_stable_diffusion", module_file="lpw_stable_diffusion.py")
+          self.pipe = LPWStableDiffusionPipeline.from_single_file(
               first_pass,
               torch_dtype=dtype,
           ).to(device)
-          self.pipe_i2i = StableDiffusionImg2ImgPipeline.from_single_file(
+          self.pipe_i2i = LPWStableDiffusionPipeline.from_single_file(
               sd_safetensor_path,
               torch_dtype=dtype,
           ).to(device)
