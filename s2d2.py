@@ -64,7 +64,8 @@ class StableDiffusionImageGenerator:
             device: str="cuda",
             dtype: torch.dtype=torch.float16,
             first_pass: str = None,
-            controlnet: bool = False
+            controlnet: bool = False,
+            xl: bool = False
             ):
         self.device = torch.device(device)
               
@@ -85,6 +86,17 @@ class StableDiffusionImageGenerator:
               controlnet = controlnet
           ).to(device)
           self.controlnet = True
+        elif xl:
+          LPWStableDiffusionXLPipeline = get_class_from_dynamic_module("lpw_stable_diffusion_xl", module_file="lpw_stable_diffusion_xl.py")
+          self.pipe = LPWStableDiffusionXLPipeline.from_single_file(
+              first_pass,
+              torch_dtype=dtype,
+          ).to(device)
+          self.pipe_i2i = LPWStableDiffusionXLPipeline.from_single_file(
+              sd_safetensor_path,
+              torch_dtype=dtype,
+          ).to(device)
+          self.controlnet = False
         else:
           LPWStableDiffusionPipeline = get_class_from_dynamic_module("lpw_stable_diffusion", module_file="lpw_stable_diffusion.py")
           self.pipe = LPWStableDiffusionPipeline.from_single_file(
