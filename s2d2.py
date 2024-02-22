@@ -9,6 +9,8 @@ from diffusers import (StableDiffusionPipeline,
                        StableDiffusionImg2ImgPipeline,
                        StableDiffusionControlNetPipeline, 
                        StableDiffusionControlNetImg2ImgPipeline, 
+                       StableDiffusionXLPipeline,
+                       StableDiffusionXLImg2ImgPipeline
                        ControlNetModel)
 from diffusers.utils import numpy_to_pil
 from diffusers.pipelines.stable_diffusion import StableDiffusionPipelineOutput
@@ -87,15 +89,21 @@ class StableDiffusionImageGenerator:
           ).to(device)
           self.controlnet = True
         elif xl:
-          LPWStableDiffusionXLPipeline = get_class_from_dynamic_module("lpw_stable_diffusion_xl", module_file="lpw_stable_diffusion_xl.py")
-          self.pipe = LPWStableDiffusionXLPipeline.from_single_file(
-              first_pass,
-              torch_dtype=dtype,
-          ).to(device)
-          self.pipe_i2i = LPWStableDiffusionXLPipeline.from_single_file(
-              sd_safetensor_path,
-              torch_dtype=dtype,
-          ).to(device)
+          self.pipe = StableDiffusionXLPipeline.from_pretrained(
+            "cagliostrolab/animagine-xl-3.0", 
+            torch_dtype=torch.float16, 
+            use_safetensors=True, 
+          )
+          self.pipe_i2i = StableDiffusionXLImg2ImgPipeline(
+                    vae=self.pipe.vae,
+                    text_encoder=self.pipe.text_encoder,
+                    tokenizer=self.pipe.tokenizer,
+                    unet=self.pipe.unet,
+                    scheduler=self.pipe.scheduler,
+                    safety_checker=None,
+                    feature_extractor=None,
+                    requires_safety_checker=False,
+          )
           self.controlnet = False
         else:
           LPWStableDiffusionPipeline = get_class_from_dynamic_module("lpw_stable_diffusion", module_file="lpw_stable_diffusion.py")
