@@ -97,7 +97,9 @@ class StableDiffusionImageGenerator:
           self.pipe_i2i = StableDiffusionXLImg2ImgPipeline(
                     vae=self.pipe.vae,
                     text_encoder=self.pipe.text_encoder,
+                    text_encoder_2=self.pipe.text_encoder_2,
                     tokenizer=self.pipe.tokenizer,
+                    tokenizer_2=self.pipe.tokenizer_2,
                     unet=self.pipe.unet,
                     scheduler=self.pipe.scheduler
           )
