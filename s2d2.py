@@ -99,10 +99,7 @@ class StableDiffusionImageGenerator:
                     text_encoder=self.pipe.text_encoder,
                     tokenizer=self.pipe.tokenizer,
                     unet=self.pipe.unet,
-                    scheduler=self.pipe.scheduler,
-                    safety_checker=None,
-                    feature_extractor=None,
-                    requires_safety_checker=False,
+                    scheduler=self.pipe.scheduler
           )
           self.controlnet = False
         else:
