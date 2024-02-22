@@ -10,7 +10,7 @@ from diffusers import (StableDiffusionPipeline,
                        StableDiffusionControlNetPipeline, 
                        StableDiffusionControlNetImg2ImgPipeline, 
                        StableDiffusionXLPipeline,
-                       StableDiffusionXLImg2ImgPipeline
+                       StableDiffusionXLImg2ImgPipeline,
                        ControlNetModel)
 from diffusers.utils import numpy_to_pil
 from diffusers.pipelines.stable_diffusion import StableDiffusionPipelineOutput
