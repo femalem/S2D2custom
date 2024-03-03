@@ -277,7 +277,8 @@ class StableDiffusionImageGenerator:
             decode_factor=0.15,
             decode_factor_final=0.18215,
             save_dir="output",
-            control_image=None
+            control_image1=None,
+            control_image2=None
             ):
         
         with torch.no_grad():
@@ -304,7 +305,8 @@ class StableDiffusionImageGenerator:
                         output_type=output_type,
                         decode_factor=decode_factor_final,
                         seed=seed,
-                        save_path=os.path.join(save_dir, f"{now_str}.jpg")
+                        save_path=os.path.join(save_dir, f"{now_str}.jpg"),
+                        control_image=control_image
                     )
                 return image
 
@@ -324,7 +326,7 @@ class StableDiffusionImageGenerator:
                         decode_factor=decode_factor,
                         seed=seed,
                         save_path=os.path.join(save_dir, f"{now_str}_{i}.jpg"),
-                        control_image=control_image
+                        control_image=control_image1
                     )
                     continue
 
@@ -384,7 +386,7 @@ class StableDiffusionImageGenerator:
                         decode_factor=decode_factor,
                         seed=seed,
                         save_path=os.path.join(save_dir, f"{now_str}_{i}.jpg"),
-                        control_image=control_image
+                        control_image=control_image2
                     )
 
                 else: # Final enhance
@@ -400,7 +402,7 @@ class StableDiffusionImageGenerator:
                         decode_factor=decode_factor_final,
                         seed=seed,
                         save_path=os.path.join(save_dir, f"{now_str}_{i}.jpg"),
-                        control_image=control_image
+                        control_image=control_image2
                     )
                     return image
     
