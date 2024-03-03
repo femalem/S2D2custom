@@ -76,7 +76,7 @@ class StableDiffusionImageGenerator:
         if controlnet:
           url = "https://huggingface.co/kohya-ss/ControlNet-diff-modules/blob/main/diff_control_sd15_openpose_fp16.safetensors"  # can also be a local path
           controlnet = ControlNetModel.from_single_file(url, torch_dtype=dtype)
-          controlnet = ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-canny", torch_dtype=torch.float16)
+          #controlnet = ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-canny", torch_dtype=torch.float16)
           self.pipe = StableDiffusionControlNetPipeline.from_single_file(
               first_pass,
               torch_dtype=dtype,
